@@ -1,0 +1,30 @@
+name : SSH connection
+on:
+  push:
+    branches: main
+
+env:
+  SERVER_PROD_USER: ${{ secrets.SERVER_USER }}
+  SERVER_PROD_IP: ${{ secrets.SERVER_IP }}
+  SSH_KEY_VPS: ${{ secrets.VPS_KEY }}
+
+jobs:
+  ssh-connect:
+    runs-on: ubuntu-24.04
+    steps:
+      - 
+        name: checkout code
+        uses: actions/checkout@v4
+      - 
+        name: ssh start
+        run: |
+          mkdir -p ~/.ssh
+          eval $(ssh-agent -s)
+          ssh-add - <<< "$SSH_KEY_VPS"
+          ssh-keyscan -t rsa -H $SERVER_IP >> ~/.ssh/known_hosts
+          ssh $SERVER_USER@$SERVER_IP "pwd && whoami && ls -al" 
+          ssh $SERVER_USER@$SERVER_IP "docker login -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}"
+          echo "end process"
+          
+
+  
